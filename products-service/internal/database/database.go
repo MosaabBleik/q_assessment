@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/MosaabBleik/products-service/internal/models"
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -14,10 +12,6 @@ import (
 var DB *gorm.DB
 
 func Connect() *gorm.DB {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
@@ -30,7 +24,6 @@ func Connect() *gorm.DB {
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		host, user, password, dbName, port, sslmode,
 	)
-	fmt.Println(dsn)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
@@ -41,14 +34,4 @@ func Connect() *gorm.DB {
 	DB = db
 
 	return db
-}
-
-func Migrate() {
-	err := DB.AutoMigrate(
-		&models.Product{},
-	)
-
-	if err != nil {
-		log.Fatal("Failed to connect to DB:", err)
-	}
 }
