@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres-products:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: products_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  postgres-inventory:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  products-service:
+    build: ./products-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-products
+      - redis
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres-products:5432/products_db?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - PORT=8080
+
+  inventory-service:
+    build: ./inventory-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres-inventory
+      - products-service
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres-inventory:5432/inventory_db?sslmode=disable
+      - PRODUCTS_SERVICE_URL=http://products-service:8080
+      - PORT=8081
