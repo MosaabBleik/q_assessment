@@ -10,6 +10,7 @@ import (
 	product_clients "github.com/MosaabBleik/inventory-service/internal/clients"
 	"github.com/MosaabBleik/inventory-service/internal/database"
 	"github.com/MosaabBleik/inventory-service/internal/handlers"
+	"github.com/MosaabBleik/inventory-service/internal/middleware"
 	"github.com/MosaabBleik/inventory-service/internal/models"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -59,11 +60,13 @@ func main() {
 	r.HandleFunc("/api/inventory/{product_id}", inventoryHandler.Stock).Methods("GET")
 	r.HandleFunc("/api/inventory/{product_id}", inventoryHandler.UpdateStock).Methods("PUT")
 	r.HandleFunc("/api/inventory/check-availability", inventoryHandler.CheckAvailability).Methods("POST")
-	r.HandleFunc("/api/health", inventoryHandler.CheckAvailability)
+	r.HandleFunc("/api/health", inventoryHandler.HealthCheck).Methods("GET")
+
+	loggedRouter := middleware.Logger(r)
 
 	port := os.Getenv("PORT")
 	portStr := fmt.Sprintf(":%s", port)
 
 	fmt.Println("Server started at :", port)
-	log.Fatal(http.ListenAndServe(portStr, r))
+	log.Fatal(http.ListenAndServe(portStr, loggedRouter))
 }

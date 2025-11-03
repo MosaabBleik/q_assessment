@@ -134,7 +134,6 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{
 			"error": "Invalid request body",
 		})
-
 		return
 	}
 
@@ -146,7 +145,10 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.DB.Create(&product).Error; err != nil {
-		http.Error(w, "Failed to create product", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Failed to create product",
+		})
 		return
 	}
 
@@ -315,7 +317,6 @@ func (h *ProductHandler) Search(w http.ResponseWriter, r *http.Request) {
 		"products": response,
 	}
 
-	// --- Marshal to JSON ---
 	jsonBytes, err := json.Marshal(result)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -325,10 +326,8 @@ func (h *ProductHandler) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// --- Save to Redis with TTL ---
 	_ = h.RedisClient.Set(ctx, cacheKey, jsonBytes, 5*time.Minute).Err()
 
-	// --- Return response ---
 	w.Write(jsonBytes)
 }
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	product_clients "github.com/MosaabBleik/inventory-service/internal/clients"
@@ -52,7 +53,10 @@ func (h *InventoryHandler) AddInventory(w http.ResponseWriter, r *http.Request) 
 		WarehouseLocation string `json:"warehouse_location"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Invalid request body",
+		})
 		return
 	}
 
@@ -166,7 +170,10 @@ func (h *InventoryHandler) UpdateStock(w http.ResponseWriter, r *http.Request) {
 		WarehouseLocation string `json:"warehouse_location"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Invalid request body",
+		})
 		return
 	}
 
@@ -239,9 +246,14 @@ func (h *InventoryHandler) LowStock(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *InventoryHandler) CheckAvailability(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var req CheckAvailabilityRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "invalid request body",
+		})
 		return
 	}
 
@@ -250,6 +262,8 @@ func (h *InventoryHandler) CheckAvailability(w http.ResponseWriter, r *http.Requ
 
 	var wg sync.WaitGroup
 	wg.Add(len(req.Items))
+
+	var unavailableService atomic.Bool
 
 	for i, item := range req.Items {
 		go func(i int, item struct {
@@ -266,19 +280,21 @@ func (h *InventoryHandler) CheckAvailability(w http.ResponseWriter, r *http.Requ
 			if err != nil {
 				errMsg := ""
 				switch prodStatus {
-				case 4:
-					errMsg = "product_not_found"
 				case 2, 5:
 					errMsg = "products_service_not_available"
+					unavailableService.Store(true)
+					return
+				case 4:
+					errMsg = "product_not_found"
+					results[i] = ItemAvailability{
+						ProductID:      item.ProductID,
+						Requested:      item.Quantity,
+						AvailableStock: 0,
+						StatusCode:     prodStatus,
+						Status:         errMsg,
+					}
+					return
 				}
-				results[i] = ItemAvailability{
-					ProductID:      item.ProductID,
-					Requested:      item.Quantity,
-					AvailableStock: 0,
-					StatusCode:     prodStatus,
-					Status:         errMsg,
-				}
-				return
 			}
 
 			// Check inventory stock
@@ -331,21 +347,31 @@ func (h *InventoryHandler) CheckAvailability(w http.ResponseWriter, r *http.Requ
 
 	wg.Wait()
 
-	// Determine overall availability
-	allAvailable := true
+	// Checking if the products service is unavailable
+	// Return global error
+	if unavailableService.Load() {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		json.NewEncoder(w).Encode(map[string]any{
+			"available": false,
+			"error":     "products_service_not_available",
+		})
+		return
+	}
+
+	// Checks if all products have sufficient stocks
+	available := true
 	for _, res := range results {
 		if res.Status != "available" {
-			allAvailable = false
+			available = false
 			break
 		}
 	}
 
 	resp := CheckAvailabilityResponse{
-		Available: allAvailable,
+		Available: available,
 		Items:     results,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
 
@@ -380,13 +406,13 @@ func WriteProductErrorResponse(w http.ResponseWriter, prodStatus int, err error)
 	case 2: // timeouts
 		statusCode = http.StatusGatewayTimeout
 		msg = err.Error()
-	case 5: // network errors / timeouts
+	case 5: // unavailable
 		statusCode = http.StatusServiceUnavailable
 		msg = err.Error()
-	case 3: // context canceled
+	case 3: // request canceled
 		statusCode = http.StatusRequestTimeout
 		msg = err.Error()
-	case 4: // product not found
+	case 4: // product/s was not found
 		statusCode = http.StatusNotFound
 		msg = err.Error()
 	default:

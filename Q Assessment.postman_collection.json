@@ -1,0 +1,461 @@
+{
+	"info": {
+		"_postman_id": "09491408-f5eb-4741-994c-e9e6ff41f8a4",
+		"name": "Q Assessment",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40285588",
+		"_collection_link": "https://zytech-hajj.postman.co/workspace/Team-Workspace~3f4c693f-129d-42d4-80b9-a6e05e83fe5b/collection/40285588-09491408-f5eb-4741-994c-e9e6ff41f8a4?action=share&source=collection_link&creator=40285588"
+	},
+	"item": [
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Create Product",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Lenovo Laptop\",\r\n    \"description\": \"Computers\",\r\n    \"price\": 2600,\r\n    \"category\": \"Electrincs\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/products",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"test2\",\r\n    \"description\": \"Only for testing...\",\r\n    \"price\": 20.5,\r\n    \"category\": \"test\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/products/search?q=laptop&category=electronics&min_price=1500&max_price=4000&sort=price",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"products",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "laptop"
+								},
+								{
+									"key": "category",
+									"value": "electronics"
+								},
+								{
+									"key": "min_price",
+									"value": "1500"
+								},
+								{
+									"key": "max_price",
+									"value": "4000"
+								},
+								{
+									"key": "sort",
+									"value": "price"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Product Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products/0b94bce7-2ebd-4f45-88d5-10307e093b27",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"products",
+								"0b94bce7-2ebd-4f45-88d5-10307e093b27"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/products/989b3315-9b1d-4125-85ce-e7272795ee47",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"products",
+								"989b3315-9b1d-4125-85ce-e7272795ee47"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"test10\",\r\n    \"description\": \"desc10.\",\r\n    \"price\": 12.5,\r\n    \"category\": \"testing\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/products/0b94bce7-2ebd-4f45-88d5-10307e093b27",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"products",
+								"0b94bce7-2ebd-4f45-88d5-10307e093b27"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Update",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"products\": [\r\n        {\r\n            \"id\": \"0b94bce7-2ebd-4f45-88d5-10307e093b27\",\r\n            \"price\": 45\r\n        },\r\n        {\r\n            \"id\": \"769cf48f-4265-4aaa-86e7-90b6c9a15d36\",\r\n            \"price\": 45\r\n        },\r\n        {\r\n            \"id\": \"2b398f7b-5ae0-41f7-9aa2-e380b6588add\",\r\n            \"price\": 45\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/products/bulk-update",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"products",
+								"bulk-update"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "cat3",
+									"disabled": true
+								},
+								{
+									"key": "min_price",
+									"value": "45",
+									"disabled": true
+								},
+								{
+									"key": "max_price",
+									"value": "51",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Health",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"health"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "test",
+									"disabled": true
+								},
+								{
+									"key": "category",
+									"value": "general",
+									"disabled": true
+								},
+								{
+									"key": "min_price",
+									"value": "45",
+									"disabled": true
+								},
+								{
+									"key": "max_price",
+									"value": "51",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Inventory",
+			"item": [
+				{
+					"name": "Add Inventory",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"product_id\": \"e7b3194c-ca2a-4ed5-bc6d-bb8e01175b88\",\r\n    \"warehouse_location\": \"Riyadh\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/inventory",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"inventory"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Stock",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"product_id\": \"2b398f7b-5ae0-41f7-9aa2-e380b6588add\",\r\n    \"warehouse_location\": \"Jeddah\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/inventory/2b398f7b-5ae0-41f7-9aa2-e380b6588add",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"inventory",
+								"2b398f7b-5ae0-41f7-9aa2-e380b6588add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Stock",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quantity\": 50,\r\n    \"warehouse_location\": \"Riyadh\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/inventory/e7b3194c-ca2a-4ed5-bc6d-bb8e01175b88",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"inventory",
+								"e7b3194c-ca2a-4ed5-bc6d-bb8e01175b88"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Low Stock",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/inventory/low-stock",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"inventory",
+								"low-stock"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Availability",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"items\": [\r\n    {\"product_id\": \"e7b3194c-ca2a-4ed5-bc6d-bb8e01175b88\", \"quantity\": 51}\r\n  ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8081/api/inventory/check-availability",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"inventory",
+								"check-availability"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Health",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"health"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

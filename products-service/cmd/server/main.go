@@ -11,6 +11,7 @@ import (
 	"github.com/MosaabBleik/products-service/internal/cache"
 	"github.com/MosaabBleik/products-service/internal/database"
 	"github.com/MosaabBleik/products-service/internal/handlers"
+	"github.com/MosaabBleik/products-service/internal/middleware"
 	"github.com/MosaabBleik/products-service/internal/models"
 	"github.com/gorilla/mux"
 )
@@ -60,9 +61,11 @@ func main() {
 	// Health check
 	r.HandleFunc("/api/health", productHandler.HealthCheck).Methods("GET")
 
+	loggedRouter := middleware.Logger(r)
+
 	port := os.Getenv("PORT")
 	portStr := fmt.Sprintf(":%s", port)
 
 	fmt.Println("Server started at :", port)
-	log.Fatal(http.ListenAndServe(portStr, r))
+	log.Fatal(http.ListenAndServe(portStr, loggedRouter))
 }
