@@ -55,6 +55,8 @@ curl -X GET http://localhost:8080/api/products/search?q=laptop&category=electron
 ## Inventory Service:
 
 ### Add inventory
+*NOTE:* You can add more than one inventory with the same product id but for different warehouse locations
+
 curl -X POST http://localhost:8081/api/inventory \
   -H "Content-Type: application/json" \
   -d '{"product_id":"uuid","quantity":100,"warehouse_location":"A1"}'
