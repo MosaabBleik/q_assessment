@@ -5,43 +5,66 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	product_clients "github.com/MosaabBleik/inventory-service/internal/clients"
 	"github.com/MosaabBleik/inventory-service/internal/database"
 	"github.com/MosaabBleik/inventory-service/internal/handlers"
 	"github.com/MosaabBleik/inventory-service/internal/models"
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load env vars
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	// Connect to database
 	db := database.Connect()
 
 	// Auto migration
-	err := db.AutoMigrate(&models.Inventory{})
+	err = db.AutoMigrate(&models.Inventory{})
 	if err != nil {
 		log.Fatalf("Migration failed: %v", err)
 	}
 
 	productsURL := os.Getenv("PRODUCTS_SERVICE_URL")
 	if productsURL == "" {
-		productsURL = "http://products-service:8080"
+		productsURL = "http://localhost:8080"
+	}
+
+	timeoutStr := os.Getenv("REQUEST_TIMEOUT")
+	timeoutSeconds, err := strconv.Atoi(timeoutStr)
+	if err != nil {
+		// Use default value
+		timeoutSeconds = 5
 	}
 
 	// Create the client
-	productsClient := product_clients.NewProductsClient(productsURL)
+	productsClient := product_clients.NewProductsClient(productsURL, timeoutSeconds)
 
-	// Create handler and inject client
 	inventoryHandler := &handlers.InventoryHandler{
+		DB:             db,
 		ProductsClient: productsClient,
 	}
 
-	// Define endpoints
-	http.HandleFunc("/api/inventory", inventoryHandler.AddInventoryHandler)
-	http.HandleFunc("/api/inventory/", inventoryHandler.StockHandler)
-	http.HandleFunc("/api/products/low-stock", inventoryHandler.CheckAvailability)
-	http.HandleFunc("/api/products/check-availability", inventoryHandler.CheckAvailability)
-	http.HandleFunc("/api/health", inventoryHandler.CheckAvailability)
+	// Router
+	r := mux.NewRouter()
 
-	fmt.Println("Server started at :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	// Define endpoints
+	r.HandleFunc("/api/inventory", inventoryHandler.AddInventory).Methods("POST")
+	r.HandleFunc("/api/inventory/low-stock", inventoryHandler.LowStock).Methods("GET")
+	r.HandleFunc("/api/inventory/{product_id}", inventoryHandler.Stock).Methods("GET")
+	r.HandleFunc("/api/inventory/{product_id}", inventoryHandler.UpdateStock).Methods("PUT")
+	r.HandleFunc("/api/inventory/check-availability", inventoryHandler.CheckAvailability).Methods("POST")
+	r.HandleFunc("/api/health", inventoryHandler.CheckAvailability)
+
+	port := os.Getenv("PORT")
+	portStr := fmt.Sprintf(":%s", port)
+
+	fmt.Println("Server started at :", port)
+	log.Fatal(http.ListenAndServe(portStr, r))
 }

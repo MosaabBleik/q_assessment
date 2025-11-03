@@ -76,7 +76,10 @@ func (h *ProductHandler) ListProducts(w http.ResponseWriter, r *http.Request) {
 	var products []models.Product
 	offset := (page - 1) * limit
 	if err := h.DB.Limit(limit).Offset(offset).Find(&products).Error; err != nil {
-		http.Error(w, "Failed to fetch products", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Failed to fetch products",
+		})
 		return
 	}
 
@@ -100,12 +103,16 @@ func (h *ProductHandler) ListProducts(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	vars := mux.Vars(r)
 	id := vars["id"]
 
 	var product models.Product
 	if err := h.DB.Where("id = ?", id).First(&product).Error; err != nil {
-		http.Error(w, "Product not found", http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Product not found",
+		})
 		return
 	}
 
@@ -123,7 +130,11 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Invalid request body",
+		})
+
 		return
 	}
 
@@ -145,6 +156,7 @@ func (h *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	ctx := context.Background()
 
 	vars := mux.Vars(r)
@@ -157,7 +169,10 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		Category    string  `json:"category"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Invalid request body",
+		})
 		return
 	}
 
@@ -183,13 +198,18 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	ctx := context.Background()
 
 	vars := mux.Vars(r)
 	id := vars["id"]
 
 	if err := h.DB.Delete(&models.Product{}, "id = ?", id).Error; err != nil {
-		http.Error(w, "Failed to delete product", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Failed to delete product",
+		})
 		return
 	}
 
@@ -201,6 +221,7 @@ func (h *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 func (h *ProductHandler) Search(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	ctx := context.Background()
 
 	q := r.URL.Query().Get("q")
@@ -270,7 +291,10 @@ func (h *ProductHandler) Search(w http.ResponseWriter, r *http.Request) {
 	// Fetch Products
 	var products []models.Product
 	if err := query.Find(&products).Error; err != nil {
-		http.Error(w, "failed to fetch products", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "failed to fetch products",
+		})
 		return
 	}
 
@@ -294,7 +318,10 @@ func (h *ProductHandler) Search(w http.ResponseWriter, r *http.Request) {
 	// --- Marshal to JSON ---
 	jsonBytes, err := json.Marshal(result)
 	if err != nil {
-		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "failed to encode response",
+		})
 		return
 	}
 
@@ -306,6 +333,7 @@ func (h *ProductHandler) Search(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) BulkUpdate(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
 	type BulkRequest struct {
 		Products []models.Product `json:"products"`
@@ -314,12 +342,18 @@ func (h *ProductHandler) BulkUpdate(w http.ResponseWriter, r *http.Request) {
 	var req BulkRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid JSON body", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "Invalid request body",
+		})
 		return
 	}
 
 	if len(req.Products) == 0 {
-		http.Error(w, "no products to update", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "no products to update",
+		})
 		return
 	}
 
@@ -365,11 +399,12 @@ func (h *ProductHandler) BulkUpdate(w http.ResponseWriter, r *http.Request) {
 		"failed":    failed,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
 
 func (h *ProductHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	ctx := context.Background()
 	dbStatus := "ok"
 	redisStatus := "ok"
@@ -382,7 +417,6 @@ func (h *ProductHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		redisStatus = "error"
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"status":   "ok",
 		"database": dbStatus,
