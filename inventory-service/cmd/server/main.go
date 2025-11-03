@@ -39,11 +39,10 @@ func main() {
 	timeoutStr := os.Getenv("REQUEST_TIMEOUT")
 	timeoutSeconds, err := strconv.Atoi(timeoutStr)
 	if err != nil {
-		// Use default value
+		// default timeout duration (seconds)
 		timeoutSeconds = 5
 	}
 
-	// Create the client
 	productsClient := product_clients.NewProductsClient(productsURL, timeoutSeconds)
 
 	inventoryHandler := &handlers.InventoryHandler{
@@ -51,10 +50,7 @@ func main() {
 		ProductsClient: productsClient,
 	}
 
-	// Router
 	r := mux.NewRouter()
-
-	// Define endpoints
 	r.HandleFunc("/api/inventory", inventoryHandler.AddInventory).Methods("POST")
 	r.HandleFunc("/api/inventory/low-stock", inventoryHandler.LowStock).Methods("GET")
 	r.HandleFunc("/api/inventory/{product_id}", inventoryHandler.Stock).Methods("GET")
